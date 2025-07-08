@@ -10,8 +10,12 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
 }
+
+data "aws_eip" "static_ip" {
+  public_ip = "52.200.76.169"
+}
+
 
 # SSH Key (public part only)
 resource "aws_key_pair" "budget_key" {
@@ -115,29 +119,16 @@ resource "aws_instance" "k3s_node" {
   vpc_security_group_ids      = [aws_security_group.budget_sg.id]
   associate_public_ip_address = true
 
+  user-data = file("${path.module}/user-data/k3s_node.sh")
+
   tags = {
     Name = "budget-k3s-node"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt update -y",
-      "curl -sfL https://get.k3s.io | sh -",
-      "sudo chmod 644 /etc/rancher/k3s/k3s.yaml"
-    ]
-
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = file("../keys/budget_key")
-      host        = self.public_ip
-    }
   }
 }
 
 resource "aws_eip_association" "static_ip_attach" {
   instance_id   = aws_instance.k3s_node.id
-  allocation_id = aws_eip.static_ip.id
+  allocation_id = data.aws_eip.static_ip.id
 }
 
 # Output public IP so you can connect
