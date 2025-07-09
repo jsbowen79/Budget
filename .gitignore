@@ -25,3 +25,4 @@ yarn-error.log*
 # Only ignore the private key
 keys/budget_key
 terraform/budget_key
+.terraform/

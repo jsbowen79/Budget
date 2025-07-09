@@ -15,7 +15,7 @@ export K3S_PRIVATE_IP="10.0.1.10"
 sudo tee /etc/nginx/sites-available/default > /dev/null <<EOF
 server {
     listen 80;
-    server_name cloudifyrides.xyz;
+    server_name cloudifyrides.xyz budget.cloudifyrides.xyz;
 
     location / {
         proxy_pass http://${K3S_PRIVATE_IP}:30080;
@@ -36,5 +36,11 @@ ufw allow 22/tcp
 ufw allow 'Nginx Full'
 # ufw --force enable
 
-# Obtain Let's Encrypt SSL certificate (safe fallback if DNS or timing fails)
-certbot --nginx -d cloudifyrides.xyz --non-interactive --agree-tos -m admin@cloudifyrides.xyz || true
+# Obtain Let's Encrypt SSL certificate for both domains
+certbot --nginx \
+  -d cloudifyrides.xyz \
+  -d budget.cloudifyrides.xyz \
+  --non-interactive \
+  --agree-tos \
+  -m admin@cloudifyrides.xyz || true
+
