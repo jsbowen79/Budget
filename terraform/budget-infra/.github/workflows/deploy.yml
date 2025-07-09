@@ -1,6 +1,9 @@
 name: Terraform Deploy
 
 on:
+  push:
+    branches:
+      - Joseph
   workflow_dispatch:
 
 jobs:
