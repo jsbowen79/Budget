@@ -19,7 +19,7 @@ data "aws_eip" "static_ip" {
 
 # SSH Key (public part only)
 resource "aws_key_pair" "budget_key" {
-  key_name   = "budget-key"
+  key_name   = "budget_key"
 public_key = file("${path.module}/budget_key.pub")
 
 }
@@ -98,6 +98,23 @@ resource "aws_security_group" "budget_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+ingress {
+    description = "SSH"
+    from_port   = 30080
+    to_port     = 30080
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  ingress {
+    description = "HTTP"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -112,26 +129,42 @@ resource "aws_security_group" "budget_sg" {
 
 # Launch EC2 instance
 resource "aws_instance" "k3s_node" {
-  ami                         = "ami-0c02fb55956c7d316" # Ubuntu 22.04 in us-east-1
+  ami                         = "ami-08c40ec9ead489470" # Ubuntu 22.04 in us-east-1
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.budget_key.key_name
   subnet_id                   = aws_subnet.main.id
+  private_ip                  = "10.0.1.10"
   vpc_security_group_ids      = [aws_security_group.budget_sg.id]
   associate_public_ip_address = true
 
-  user-data = file("${path.module}/user-data/k3s_node.sh")
+  user_data = file("${path.module}/user-data/k3s-node.sh")
 
   tags = {
-    Name = "budget-k3s-node"
+    Name = "cloudifyrides-k3s-node"
   }
 }
 
+resource "aws_instance" "nginx_proxy" {
+  ami                    = "ami-08c40ec9ead489470"
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.main.id
+  key_name               = aws_key_pair.budget_key.key_name
+  vpc_security_group_ids = [aws_security_group.budget_sg.id]
+
+  user_data = file("${path.module}/user-data/nginx-proxy.sh")
+
+  tags = {
+    Name = "nginx-proxy"
+  }
+}
+
+
 resource "aws_eip_association" "static_ip_attach" {
-  instance_id   = aws_instance.k3s_node.id
+  instance_id   = aws_instance.nginx_proxy.id
   allocation_id = data.aws_eip.static_ip.id
 }
 
 # Output public IP so you can connect
 output "instance_public_ip" {
-  value = aws_instance.k3s_node.public_ip
+  value = aws_instance.nginx_proxy.public_ip
 }
