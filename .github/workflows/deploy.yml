@@ -18,10 +18,11 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
-        run: terraform init -input=false -force-copy
+        run: terraform -chdir=./terraform init -input=false -force-copy
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false
+        run: terraform -chdir=./terraform apply -auto-approve -input=false
+
 
       - name: Terraform Output
         run: terraform output -json

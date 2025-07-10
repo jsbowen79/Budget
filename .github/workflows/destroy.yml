@@ -29,9 +29,11 @@ jobs:
           echo "{\"credentials\":{\"app.terraform.io\":{\"token\":\"$TF_API_TOKEN\"}}}" > ~/.terraform.d/credentials.tfrc.json
 
       - name: Terraform Init
-        run: terraform init -force-copy
+        run: terraform -chdir=./terraform init -force-copy
+
 
       - name: Terraform Destroy
         env:
           TF_LOG: INFO
-        run: terraform destroy -auto-approve -input=false
+        run: terraform -chdir=./terraform destroy -auto-approve -input=false
+
