@@ -31,7 +31,9 @@ jobs:
       - name: Terraform Init
         run: terraform -chdir=./terraform init -force-copy
 
+
       - name: Terraform Destroy
         env:
           TF_LOG: INFO
         run: terraform -chdir=./terraform destroy -auto-approve -input=false
+

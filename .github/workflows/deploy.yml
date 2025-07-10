@@ -23,5 +23,6 @@ jobs:
       - name: Terraform Apply
         run: terraform -chdir=./terraform apply -auto-approve -input=false
 
+
       - name: Terraform Output
         run: terraform output -json
